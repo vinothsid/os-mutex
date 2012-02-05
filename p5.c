@@ -14,9 +14,18 @@ username Surya Prakash Rajagopal
 
 #include<stdio.h>
 #include"mythread.h"
+#define printOut(string) write(1,string,strlen(string))
 
-mythread_key_t key1;
-mythread_key_t key2;
+
+char* itoa(int val, int base){
+        static char buf[32] = {0};
+        int i = 30;
+        for(; val && i ; --i, val /= base)
+                buf[i] = "0123456789abcdef"[val % base];
+        return &buf[i+1];
+}
+
+
 void *func(void *name) {
 
 	printOut((char*)name);
@@ -40,6 +49,7 @@ void *thread3() {
 
 }
 
+/*
 void getKeyValue() {
 	char *data = (char *)mythread_getspecific(key1);
 	printOut("tests mythread_getspecific():Key Value retrieved in thread :");
@@ -64,6 +74,7 @@ void deleteKey() {
 		printOut("This should not be printed\n");
 
 }
+*/
 void *yieldThread1() {
 	static int i = 1;
 
@@ -73,11 +84,11 @@ void *yieldThread1() {
 	printOut(itoa(mythread_self(),10));
 	printOut("\n");
 	
-	mythread_key_create(&key1,NULL);
+//	mythread_key_create(&key1,NULL);
 
-	char *d = malloc(100);
-	strcpy(d,"yieldThread1 value");
-	mythread_setspecific(key1,(void *)d);
+//	char *d = malloc(100);
+//	strcpy(d,"yieldThread1 value");
+//	mythread_setspecific(key1,(void *)d);
 	while(i<=3) {
 		printOut(itoa(mythread_self(),10));
 		printOut(" mythread_yield(): yieldThread1 yielding #");
@@ -89,7 +100,7 @@ void *yieldThread1() {
 	
 
 	
-	getKeyValue();
+//	getKeyValue();
 		
 }
 
@@ -99,10 +110,10 @@ void *yieldThread2() {
 	printOut(itoa(mythread_self(),10));
 	printOut("\n");
 	//mythread_key_create(&key1,NULL);
-	char *d = malloc(100);
-	strcpy(d,"yieldThread2 value");
-	printOut("mythread_setspecific():setting thread specific data as : yieldThread2 value\n");
-	mythread_setspecific(key1,(void *)d);
+//	char *d = malloc(100);
+//	strcpy(d,"yieldThread2 value");
+//	printOut("mythread_setspecific():setting thread specific data as : yieldThread2 value\n");
+//	mythread_setspecific(key1,(void *)d);
 	while(i <= 3) {
 		printOut(itoa(mythread_self(),10));
 		printOut(" mythread_yield(): yieldThread2 yielding #");
@@ -112,11 +123,11 @@ void *yieldThread2() {
 		i++;
 	}
 		
-	getKeyValue();
+//	getKeyValue();
 	
-	deleteKey();
+//	deleteKey();
 
-	getKeyValue();
+//	getKeyValue();
 }
 
 void *exitThread() {
@@ -128,10 +139,39 @@ void *exitThread() {
 
 int main() {
 
+
+	mythread_t tid1,tid2;
+	mythread_queue_t head;
+	
+
+	tid1 = malloc(sizeof(struct mythread));
+//	tid2 = malloc(sizeof(struct mythread);
+	head = malloc(sizeof(struct mythread_queue));
+	head->item =(void *) tid1;
+	head->prev = NULL;
+	head->next = NULL;
+
+			
+	mythread_block(head,1);
+
+
+
+
+
+
+
+
+
+
+
+
+/*
 	mythread_t tid1,tid2,tid3,tid4;
 
 	mythread_create(&tid1,NULL,thread1,NULL);
 	mythread_create(&tid2,NULL,thread2,NULL);
+
+
 	mythread_create(&tid3,NULL,thread3,NULL);
 
 
@@ -149,4 +189,6 @@ int main() {
 
 	mythread_create(&tid3,NULL,exitThread,NULL);
 	mythread_exit(NULL);
+
+*/
 }
