@@ -1,3 +1,6 @@
+#ifndef MYMUTEX_H_
+#define MYMUTEX_H_
+
 #include "mythread.h"
 
 #define BLOCKED 1
@@ -6,6 +9,7 @@ typedef struct mythread_mutex { /*mutex structure */
         int flag;
         mythread_queue_t mQ;
 } mythread_mutex_t;
+
 
 typedef unsigned int mythread_mutexattr_t;
 
@@ -32,3 +36,5 @@ int mythread_mutex_lock(mythread_mutex_t* );
 *
 */
 int mythread_mutex_unlock(mythread_mutex_t* );
+
+#endif

@@ -15,10 +15,15 @@ username Surya Prakash Rajagopal
 #include<stdio.h>
 #include"mythread.h"
 #include "mymutex.h"
+#include "mycond.h"
 #define printOut(string) write(1,string,strlen(string))
-int glval;
+int glval,glval1;
 mythread_mutex_t lock;
+mythread_mutex_t lock1;
 
+mythread_cond_t cond;
+
+mythread_queue_t Q;
 char* itoa(int val, int base){
         static char buf[32] = {0};
         int i = 30;
@@ -79,12 +84,25 @@ void deleteKey() {
 */
 void *yieldThread1() {
  int i=0;
-        while(i<100) {
-        mythread_mutex_lock(&lock);
+        while(i<600) {
+        //mythread_mutex_lock(&lock);
+//        mythread_mutex_lock(&lock1);
+/*
+		if(glval==100) {
+			mythread_cond_wait(&cond,&lock);
+			sleep(1);
+		}
+*/		
                 glval++;
                 printOut(itoa(glval,10));
+                printOut("\nthread1\n");
+                glval1++;
+//		mythread_enter_kernel();
+//		mythread_unblock(&Q,1);
+                printOut(itoa(glval1,10));
                 printOut("\n");
-        mythread_mutex_unlock(&lock);
+        //mythread_mutex_unlock(&lock);
+//        mythread_mutex_unlock(&lock1);
                 i++;
         }
 		
@@ -92,12 +110,31 @@ void *yieldThread1() {
 
 void *yieldThread2() {
 	int i=0;
-	while(i<100) {
-	mythread_mutex_lock(&lock);
-		glval++;
+	while(i<200) {
+	//mythread_mutex_lock(&lock);
+//      mythread_mutex_lock(&lock1);
+
 		printOut(itoa(glval,10));
-		printOut("\n");
-	mythread_mutex_unlock(&lock);
+		printOut("\nthread2\n");
+/*		if(glval == 100 ) {
+			mythread_cond_signal(&cond);
+		}
+*/
+		glval++;
+		
+                glval1++;
+//		mythread_enter_kernel();
+//		mythread_block_phase1(&Q,1);
+//		sleep(5);
+//		mythread_enter_kernel();
+//		mythread_block_phase2();
+                printOut(itoa(glval1,10));
+                printOut("\n");
+//	mythread_mutex_unlock(&lock);
+
+	if(i==100)
+		sleep(1);
+//      mythread_mutex_unlock(&lock1);
 		i++;
 	}
 }
@@ -110,8 +147,14 @@ void *exitThread() {
 }
 
 int main() {
+
+	mythread_setconcurrency(4);
 	mythread_mutex_init(&lock,NULL);
+	mythread_mutex_init(&lock1,NULL);
+
+	mythread_cond_init(&cond,NULL);
 	glval=0;
+	glval1=0;
 	mythread_t tid1,tid2;
 	mythread_queue_t head;
 	
@@ -120,8 +163,16 @@ int main() {
 	tid2 = malloc(sizeof(struct mythread));
 	mythread_create(&tid1,NULL,yieldThread1,NULL);
 	mythread_create(&tid2,NULL,yieldThread2,NULL);
-//	mythread_join(tid1,NULL);
-
+	mythread_join(tid1,NULL);
+	mythread_join(tid2,NULL);
+/*
+	mythread_mutex_destroy(&lock);
+	mythread_mutex_init(&lock,NULL);
+	mythread_create(&tid1,NULL,yieldThread1,NULL);
+	mythread_create(&tid2,NULL,yieldThread2,NULL);
+	mythread_join(tid1,NULL);
+	mythread_join(tid2,NULL);
+*/
 	mythread_exit(NULL);			
 
 

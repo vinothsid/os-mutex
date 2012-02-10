@@ -57,17 +57,9 @@ int mythread_mutex_lock(mythread_mutex_t* mutex ) {
 
 }
 
-/*
-*function to unlock the lock associated with the mutex structure
-*
-*/
-int mythread_mutex_unlock(mythread_mutex_t* mutex)  {
+int mythread_mutex_unlock(mythread_mutex_t* mutex) {
 	mythread_enter_kernel();
-	mutex->val=1;
-	//compare_and_swap(&(mutex->val),1,0);
 	(mutex->flag)--;
-	write(1,"\nhere in unlock\n",strlen("\nhere in unlock\n"));
+	mutex->val=1;
 	mythread_unblock(&(mutex->mQ),BLOCKED);
 }
-
-
