@@ -14,8 +14,10 @@ username Surya Prakash Rajagopal
 
 #include<stdio.h>
 #include"mythread.h"
+#include "mymutex.h"
 #define printOut(string) write(1,string,strlen(string))
-
+int glval;
+mythread_mutex_t lock;
 
 char* itoa(int val, int base){
         static char buf[32] = {0};
@@ -76,58 +78,28 @@ void deleteKey() {
 }
 */
 void *yieldThread1() {
-	static int i = 1;
-
-	sleep(1); //Sleeping for 1 second so that the next thread joins the queue
-
-	printOut(" mythread_key_create():Creating key1 in thread : ");
-	printOut(itoa(mythread_self(),10));
-	printOut("\n");
-	
-//	mythread_key_create(&key1,NULL);
-
-//	char *d = malloc(100);
-//	strcpy(d,"yieldThread1 value");
-//	mythread_setspecific(key1,(void *)d);
-	while(i<=3) {
-		printOut(itoa(mythread_self(),10));
-		printOut(" mythread_yield(): yieldThread1 yielding #");
-		printOut(itoa(i,10));
-		printOut("\n");
-		mythread_yield();
-		i++;
-	}
-	
-
-	
-//	getKeyValue();
+ int i=0;
+        while(i<100) {
+        mythread_mutex_lock(&lock);
+                glval++;
+                printOut(itoa(glval,10));
+                printOut("\n");
+        mythread_mutex_unlock(&lock);
+                i++;
+        }
 		
 }
 
 void *yieldThread2() {
-	static int i = 1;
-	printOut(" mythread_key_create() : Creating key1 in thread : ");
-	printOut(itoa(mythread_self(),10));
-	printOut("\n");
-	//mythread_key_create(&key1,NULL);
-//	char *d = malloc(100);
-//	strcpy(d,"yieldThread2 value");
-//	printOut("mythread_setspecific():setting thread specific data as : yieldThread2 value\n");
-//	mythread_setspecific(key1,(void *)d);
-	while(i <= 3) {
-		printOut(itoa(mythread_self(),10));
-		printOut(" mythread_yield(): yieldThread2 yielding #");
-		printOut(itoa(i,10));
+	int i=0;
+	while(i<100) {
+	mythread_mutex_lock(&lock);
+		glval++;
+		printOut(itoa(glval,10));
 		printOut("\n");
-		mythread_yield();
+	mythread_mutex_unlock(&lock);
 		i++;
 	}
-		
-//	getKeyValue();
-	
-//	deleteKey();
-
-//	getKeyValue();
 }
 
 void *exitThread() {
@@ -138,21 +110,19 @@ void *exitThread() {
 }
 
 int main() {
-
-
+	mythread_mutex_init(&lock,NULL);
+	glval=0;
 	mythread_t tid1,tid2;
 	mythread_queue_t head;
 	
 
 	tid1 = malloc(sizeof(struct mythread));
-//	tid2 = malloc(sizeof(struct mythread);
-	head = malloc(sizeof(struct mythread_queue));
-	head->item =(void *) tid1;
-	head->prev = NULL;
-	head->next = NULL;
+	tid2 = malloc(sizeof(struct mythread));
+	mythread_create(&tid1,NULL,yieldThread1,NULL);
+	mythread_create(&tid2,NULL,yieldThread2,NULL);
+//	mythread_join(tid1,NULL);
 
-			
-	mythread_block(head,1);
+	mythread_exit(NULL);			
 
 
 

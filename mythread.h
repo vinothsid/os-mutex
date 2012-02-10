@@ -21,6 +21,8 @@ typedef struct mythread_attr { /* thread attributes */
   int attr;                    /* not yet used */
 } mythread_attr_t;
 
+
+
 typedef struct mythread {      /* thread control block */
   pid_t tid;
   struct futex block;
@@ -126,5 +128,4 @@ int mythread_join(mythread_t target_thread, void **status);
  * from thread_func and dequeue itself from run Q before dispatching run->next
  */
 void mythread_exit(void *retval);
-
 #endif /* MYTHREAD_H */
