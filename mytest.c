@@ -48,7 +48,7 @@ void *thread1() {
 		glval++;
 		//usleep(100);
                 if(glval==100) {
-                        printOut("Thread1 sleeping for 100 microseconds to hit blocking mutex condition in thread2\n");
+                        printOut("Thread1 sleeping for 10000 microseconds to hit blocking mutex condition in thread2\n");
 			mythread_cond_signal(&cond);
 			mythread_cond_broadcast(&cond1);
 
@@ -72,7 +72,7 @@ void *thread2() {
   		mythread_mutex_lock(&lock);
 		glval++;
 		if(glval==100) {
-			printOut("Thread2 sleeping for 100 microseconds to hit blocking mutex condition in thread1\n");
+			printOut("Thread2 sleeping for 10000 microseconds to hit blocking mutex condition in thread1\n");
 			mythread_cond_signal(&cond);
 			mythread_cond_broadcast(&cond1);
 
@@ -233,6 +233,8 @@ int main() {
 	mythread_create(&tid4,NULL,thread4,NULL); //Thread4 going to call condition wait and will be woken up(condition broadcast signal)  
 	mythread_create(&tid5,NULL,thread5,NULL); //Thread5 going to call condition wait and will be woken up(condition broadcast signal)  
 
+	printOut("Sleeping for 1 second so that threads calling condition waits starts before their condition variables are signaled");
+	sleep(1); // Sleep for 1 second so that tid3,tid4,tid5 waits on condition wait before condition signal/broadcast is sent
 	mythread_create(&tid1,NULL,thread1,NULL);
 	mythread_create(&tid2,NULL,thread2,NULL);
 	mythread_join(tid1,NULL);
@@ -269,6 +271,8 @@ int main() {
         mythread_create(&tid4,NULL,thread4,NULL); //Thread4 going to call condition wait and will be woken up(condition broadcast signal)  
         mythread_create(&tid5,NULL,thread5,NULL); //Thread5 going to call condition wait and will be woken up(condition broadcast signal)  
 
+	printOut("Sleeping for 1 second so that threads calling 'condition wait' starts before their condition variables are signaled");
+	sleep(1); // Sleep for 1 second so that tid3,tid4,tid5 waits on condition wait before condition signal/broadcast is sent
         mythread_create(&tid1,NULL,thread1,NULL);
         mythread_create(&tid2,NULL,thread2,NULL);
         mythread_join(tid1,NULL);

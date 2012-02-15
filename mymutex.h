@@ -3,6 +3,7 @@
 
 #include "mythread.h"
 
+// #define VERBOSE 1
 #define BLOCKED 1
 typedef struct mythread_mutex { /*mutex structure */
         int val;

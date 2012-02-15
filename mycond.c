@@ -30,22 +30,31 @@ int mythread_cond_wait(mythread_cond_t *cond, mythread_mutex_t *mutex) {
 	mythread_mutex_unlock(mutex);
 	mythread_enter_kernel();
 	cond->count++;
+#ifdef VERBOSE
 	write(1,"\nhere in after count\n",strlen("\nhere in after count\n"));
+#endif
 	lll_unlock(&(cond->lll_lock_val));
 	mythread_block_phase2();
 	mythread_mutex_lock(mutex);
+#ifdef VERBOSE
 	write(1,"\nhere in after reacquisition\n",strlen("\nhere in after reacquisition\n"));
+#endif
 }
 
 int mythread_cond_signal(mythread_cond_t *cond) {
 	lll_lock(&(cond->lll_lock_val));
+#ifdef VERBOSE
 	write(1,"\nhere in after lll_lock in cond_singal\n",strlen("\nhere in after lll_lock in cond_singal\n"));
+#endif
 	mythread_enter_kernel();
 	mythread_unblock(&(cond->cQ),BLOCKED);
 	cond->count--;
 	lll_unlock(&(cond->lll_lock_val));
 	
+#ifdef VERBOSE
 	write(1,"\nhere in after unlock of local lock\n",strlen("\nhere in after unlock of local lock\n"));
+#endif
+
 }
 
 int mythread_cond_broadcast(mythread_cond_t *cond){

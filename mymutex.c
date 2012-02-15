@@ -36,7 +36,9 @@ int mythread_mutex_lock(mythread_mutex_t* mutex ) {
 //				write(1,"thresh100",strlen("thresh100"));
 				mythread_enter_kernel();
 				if( mutex->flag == 0 ) {
+#ifdef VERBOSE
 					write(1,"\nThread suspending on block\n",strlen("\nThread suspending on block\n"));
+#endif
 					mythread_block(&(mutex->mQ),BLOCKED);
 					thresh=0;
 				} else {
