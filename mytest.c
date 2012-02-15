@@ -250,7 +250,9 @@ int main() {
 	mythread_join(tid5,NULL);
 
 
+	printOut("=================================================================\n");
 	printOut("Repeat the entire test after destroying(mythread_mutex_destroy,mythread_cond_destroy) and reinitializing 2 locks and 2 condition variables\n");
+	printOut("=================================================================\n");
 
 /********* Destroying all mmutexes and locks and reinitialising again ****************************/
 	mythread_mutex_destroy(&lock);
