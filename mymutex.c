@@ -31,12 +31,12 @@ int mythread_mutex_lock(mythread_mutex_t* mutex ) {
 	while(1) {
                 while(mutex->val!=1) { //spin lock phase
                         thresh++; 
-			write(1,"\nhere in while",strlen("\nhere in while"));
+//			write(1,"\nhere in while",strlen("\nhere in while"));
 			if(thresh==100) {
-				write(1,"thresh100",strlen("thresh100"));
+//				write(1,"thresh100",strlen("thresh100"));
 				mythread_enter_kernel();
-				if(mutex->flag>0) {
-					write(1,"\nhere in if",strlen("\nhere in if"));
+				if( mutex->flag == 0 ) {
+					write(1,"\nThread suspending on block\n",strlen("\nThread suspending on block\n"));
 					mythread_block(&(mutex->mQ),BLOCKED);
 					thresh=0;
 				} else {
@@ -48,7 +48,7 @@ int mythread_mutex_lock(mythread_mutex_t* mutex ) {
 		if(compare_and_swap(&(mutex->val),0,1))  {
 	
 			mythread_enter_kernel();
-			write(1,"\nhere in acquire\n",strlen("\nhere in acquire\n"));
+//			write(1,"\nhere in acquire\n",strlen("\nhere in acquire\n"));
 			(mutex->flag)++;
 			mythread_leave_kernel();
                         return;

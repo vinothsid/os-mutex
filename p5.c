@@ -21,7 +21,7 @@ int glval,glval1;
 mythread_mutex_t lock;
 mythread_mutex_t lock1;
 
-mythread_cond_t cond;
+mythread_cond_t cond,cond1;
 
 mythread_queue_t Q;
 char* itoa(int val, int base){
@@ -40,20 +40,81 @@ void *func(void *name) {
 
 void *thread1() {
 
-	printOut(itoa(mythread_self(),10));
-	printOut(" Thread1 running\n");
+//	printOut(itoa(mythread_self(),10));
+//	printOut("Thread1\n");
+	int i=0;
+	while(i<200) {
+  		mythread_mutex_lock(&lock);
+		glval++;
+		//usleep(100);
+                if(glval==100) {
+                        printOut("Thread1 sleeping for 100 microseconds to hit blocking mutex condition in thread2\n");
+			mythread_cond_signal(&cond);
+			mythread_cond_broadcast(&cond1);
+
+                        usleep(10000);
+
+                }
+
+		mythread_mutex_unlock(&lock);
+		printOut("Using IO in thread1 \n");
+		i++;
+	}
+
+	
 }
 
 void *thread2() {
-	printOut(itoa(mythread_self(),10));
-	printOut(" Thread2 running\n");
+//	printOut(itoa(mythread_self(),10));
+//	printOut(": Thread2\n");
+	int i=0;
+	while(i<200) {
+  		mythread_mutex_lock(&lock);
+		glval++;
+		if(glval==100) {
+			printOut("Thread2 sleeping for 100 microseconds to hit blocking mutex condition in thread1\n");
+			mythread_cond_signal(&cond);
+			mythread_cond_broadcast(&cond1);
+
+			usleep(10000);
+
+		}
+
+		mythread_mutex_unlock(&lock);
+		printOut("Using IO in thread2 \n");
+		i++;
+	}
 
 }
 
 void *thread3() {
-	printOut(itoa(mythread_self(),10));
-	printOut(" Thread3 running\n");
 
+        printOut("Thread3 Waiting on Condition Wait\n");
+	
+	mythread_mutex_lock(&lock);
+        mythread_cond_wait(&cond,&lock);
+
+	printOut("Thread3 woken up from Condition wait\n");
+	mythread_mutex_unlock(&lock);
+
+}
+
+void *thread4() {
+        printOut("Thread4 Waiting on Condition Wait .Will be released by broadcast\n");
+        mythread_mutex_lock(&lock1);
+
+        mythread_cond_wait(&cond1,&lock1);  // in thread1/thread2 broadcast signal will be done
+	printOut("Thread4 woken up by broadcast signal from Condition wait\n");
+        mythread_mutex_unlock(&lock1);
+}
+
+void *thread5() {
+        printOut("Thread5 Waiting on Condition Wait .Will be released by broadcast\n");
+        mythread_mutex_lock(&lock1);
+
+        mythread_cond_wait(&cond1,&lock1);  // in thread1/thread2 broadcast signal will be done
+        printOut("Thread5 woken up by broadcast signal from Condition wait\n");
+        mythread_mutex_unlock(&lock1);
 }
 
 /*
@@ -82,17 +143,18 @@ void deleteKey() {
 
 }
 */
+
 void *yieldThread1() {
  int i=0;
         while(i<600) {
-        //mythread_mutex_lock(&lock);
+        mythread_mutex_lock(&lock);
 //        mythread_mutex_lock(&lock1);
-/*
+
 		if(glval==100) {
 			mythread_cond_wait(&cond,&lock);
 			sleep(1);
 		}
-*/		
+		
                 glval++;
                 printOut(itoa(glval,10));
                 printOut("\nthread1\n");
@@ -153,63 +215,72 @@ int main() {
 	mythread_mutex_init(&lock1,NULL);
 
 	mythread_cond_init(&cond,NULL);
+	mythread_cond_init(&cond1,NULL);
 	glval=0;
 	glval1=0;
-	mythread_t tid1,tid2;
+	mythread_t tid1,tid2,tid3,tid4,tid5;
 	mythread_queue_t head;
 	
 
 	tid1 = malloc(sizeof(struct mythread));
 	tid2 = malloc(sizeof(struct mythread));
-	mythread_create(&tid1,NULL,yieldThread1,NULL);
-	mythread_create(&tid2,NULL,yieldThread2,NULL);
-	mythread_join(tid1,NULL);
-	mythread_join(tid2,NULL);
-/*
-	mythread_mutex_destroy(&lock);
-	mythread_mutex_init(&lock,NULL);
-	mythread_create(&tid1,NULL,yieldThread1,NULL);
-	mythread_create(&tid2,NULL,yieldThread2,NULL);
-	mythread_join(tid1,NULL);
-	mythread_join(tid2,NULL);
-*/
-	mythread_exit(NULL);			
+	tid3 = malloc(sizeof(struct mythread));
+	tid4 = malloc(sizeof(struct mythread));
+	tid5 = malloc(sizeof(struct mythread));
 
-
-
-
-
-
-
-
-
-
-
-
-/*
-	mythread_t tid1,tid2,tid3,tid4;
+/**************** Test cases for testing all functions except destroy functions ********************/
+	mythread_create(&tid3,NULL,thread3,NULL); //Thread3 going to call condition wait and will be woken up(condition signal)  
+	mythread_create(&tid4,NULL,thread4,NULL); //Thread4 going to call condition wait and will be woken up(condition broadcast signal)  
+	mythread_create(&tid5,NULL,thread5,NULL); //Thread5 going to call condition wait and will be woken up(condition broadcast signal)  
 
 	mythread_create(&tid1,NULL,thread1,NULL);
 	mythread_create(&tid2,NULL,thread2,NULL);
-
-
-	mythread_create(&tid3,NULL,thread3,NULL);
-
-
 	mythread_join(tid1,NULL);
 	mythread_join(tid2,NULL);
+
+	printOut("Value of global variable incremented 200 times in two threads : ");
+	printOut(itoa(glval,10));
+	printOut("\n");
+
+/*************************************************************************************************/
 	mythread_join(tid3,NULL);
-
-	mythread_create(&tid4,NULL,func,(void *)"first 3 threads joined. Argument passed successfully\n");
 	mythread_join(tid4,NULL);
+	mythread_join(tid5,NULL);
 
-	mythread_create(&tid1,NULL,yieldThread1,NULL);
-	mythread_create(&tid2,NULL,yieldThread2,NULL);
-//	mythread_join(tid1,NULL);
-//	mythread_join(tid2,NULL);
 
-	mythread_create(&tid3,NULL,exitThread,NULL);
-	mythread_exit(NULL);
+	printOut("Repeat the entire test above again after destroying and reinitializing 2 locks and 2 condition variables");
 
-*/
+/********* Destroying all mmutexes and locks and reinitialising again ****************************/
+	mythread_mutex_destroy(&lock);
+	mythread_mutex_destroy(&lock1);
+	mythread_cond_destroy(&cond);
+	mythread_cond_destroy(&cond1);
+
+        mythread_mutex_init(&lock,NULL);
+        mythread_mutex_init(&lock1,NULL);
+
+        mythread_cond_init(&cond,NULL);
+        mythread_cond_init(&cond1,NULL);
+/**************************************************************************************************/
+
+/**************** Test cases for testing all functions except destroy functions ********************/
+	glval=0;
+        mythread_create(&tid3,NULL,thread3,NULL); //Thread3 going to call condition wait and will be woken up(condition signal)  
+        mythread_create(&tid4,NULL,thread4,NULL); //Thread4 going to call condition wait and will be woken up(condition broadcast signal)  
+        mythread_create(&tid5,NULL,thread5,NULL); //Thread5 going to call condition wait and will be woken up(condition broadcast signal)  
+
+        mythread_create(&tid1,NULL,thread1,NULL);
+        mythread_create(&tid2,NULL,thread2,NULL);
+        mythread_join(tid1,NULL);
+        mythread_join(tid2,NULL);
+
+        printOut("Value of global variable incremented in the repeated test 200 times in two threads : ");
+        printOut(itoa(glval,10));
+        printOut("\n");
+
+/**************************************************************************************************/
+
+
+	mythread_exit(NULL);			
+
 }

@@ -17,6 +17,9 @@ int mythread_cond_init(mythread_cond_t *cond,
 *
 */
 int mythread_cond_destroy(mythread_cond_t *cond) {
+        cond->count=-1;
+        cond->lll_lock_val=-1;
+        cond->cQ=NULL;
 
 }
 
