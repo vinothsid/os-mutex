@@ -233,7 +233,7 @@ int main() {
 	mythread_create(&tid4,NULL,thread4,NULL); //Thread4 going to call condition wait and will be woken up(condition broadcast signal)  
 	mythread_create(&tid5,NULL,thread5,NULL); //Thread5 going to call condition wait and will be woken up(condition broadcast signal)  
 
-	printOut("Sleeping for 1 second so that threads calling condition waits starts before their condition variables are signaled");
+	printOut("Sleeping for 1 second so that threads calling condition waits starts before their condition variables are signaled\n");
 	sleep(1); // Sleep for 1 second so that tid3,tid4,tid5 waits on condition wait before condition signal/broadcast is sent
 	mythread_create(&tid1,NULL,thread1,NULL);
 	mythread_create(&tid2,NULL,thread2,NULL);
@@ -250,7 +250,7 @@ int main() {
 	mythread_join(tid5,NULL);
 
 
-	printOut("Repeat the entire test above again after destroying and reinitializing 2 locks and 2 condition variables");
+	printOut("Repeat the entire test after destroying(mythread_mutex_destroy,mythread_cond_destroy) and reinitializing 2 locks and 2 condition variables\n");
 
 /********* Destroying all mmutexes and locks and reinitialising again ****************************/
 	mythread_mutex_destroy(&lock);
@@ -271,7 +271,7 @@ int main() {
         mythread_create(&tid4,NULL,thread4,NULL); //Thread4 going to call condition wait and will be woken up(condition broadcast signal)  
         mythread_create(&tid5,NULL,thread5,NULL); //Thread5 going to call condition wait and will be woken up(condition broadcast signal)  
 
-	printOut("Sleeping for 1 second so that threads calling 'condition wait' starts before their condition variables are signaled");
+	printOut("Sleeping for 1 second so that threads calling 'condition wait' starts before their condition variables are signaled\n");
 	sleep(1); // Sleep for 1 second so that tid3,tid4,tid5 waits on condition wait before condition signal/broadcast is sent
         mythread_create(&tid1,NULL,thread1,NULL);
         mythread_create(&tid2,NULL,thread2,NULL);
